@@ -1,0 +1,7 @@
+npm init 
+public/temp/.gittemp
+.gitignore   files from gitignore generator
+.env
+make app.js index.js and constants.js in src
+select type in package.json modules or common.js, I will select module.js
+"dev": "nodemon src/index.js" nodemon npm i -D nodemon install ker k scripts me run honay k liye add kerdo 
