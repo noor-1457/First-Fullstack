@@ -5,3 +5,12 @@ public/temp/.gittemp
 make app.js index.js and constants.js in src
 select type in package.json modules or common.js, I will select module.js
 "dev": "nodemon src/index.js" nodemon npm i -D nodemon install ker k scripts me run honay k liye add kerdo 
+Make 6 folders in src 
+1 controllers
+2 db
+3 modles
+4 routes
+5 middlewares
+6 utils
+Install prettier npm i prettier is working in group project so that all can follow same design and less merge conflicts.
+after installing prettier save some settings how it will work in .prettierrc and .prettierignore where prettier will not work.
