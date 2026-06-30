@@ -25,3 +25,18 @@ Make 6 folders in src
 
 Install prettier npm i prettier is working in group project so that all can follow same design and less merge conflicts.
 after installing prettier save some settings how it will work in .prettierrc and .prettierignore where prettier will not work.
+
+write .env variables
+
+write db name in constatnts
+
+3 packages install kernay hain dotenv express or mongoose.
+npm i mongoose express dotenv
+
+now we will connect db from index.js 
+and one more thing always wrap the function in async await and try catch because there can be error and it will take time to fetch data.
+
+in db folder create index.js in this file connect with database write function.
+
+now import it in index.js and also import dotenv pplus make its config now import is experimental so add a line in package.json 
+    "dev": "nodemon -r dotenv/config --experimental-json-modules  src/index.js"
