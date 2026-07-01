@@ -10,6 +10,6 @@ try {
     console.log("ERROR",error);
     process.exit(1)          //process to execute after error
 }
-}
+} 
 
-export default connectDB;
+export default connectDB; 

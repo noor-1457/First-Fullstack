@@ -40,3 +40,17 @@ in db folder create index.js in this file connect with database write function.
 
 now import it in index.js and also import dotenv pplus make its config now import is experimental so add a line in package.json 
     "dev": "nodemon -r dotenv/config --experimental-json-modules  src/index.js"
+
+make an app through express in app.js and import it in index.js and wrap it in .then and .catch fro error handling and do it after connectDB() cuz app will run after db connected
+
+then install npm i cookie-parser and cors to connect frontend and backend.
+app.js me import karo app.use( hamesha middleware ya configurations k liye kerte hain)
+ab app.js me sab configurations set karen gay 
+
+request or response k mid me credentials ki checking ko middleware kehtay hain 
+(err, req, res, next) ye proper params hain next isliye use hota hai agar zyada middlewares hain check honay k liye to next wal aflag agalay middleware ko pass hota hai nahi to discard ho jata hai 
+
+utils me newfile async handlers banai jisme aik utility function banay ga jo db leke usko function me wrap ker k dega
+ApiError.js banayen gay agar koi error aye to wo handle ho jaye
+
+abhi tak ka jo kam hua wo node.js pe hua ab jo request or response handle karay ga wo express pe hoga.
