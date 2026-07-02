@@ -55,3 +55,9 @@ ApiError.js banayen gay agar koi error aye to wo handle ho jaye
 ApiResponse.js response set kiya 
 
 abhi tak ka jo kam hua wo node.js pe hua ab jo request or response handle karay ga wo express pe hoga.
+
+
+(Data Modeling)
+
+make data models of all entities
+mongoose-aggregation-pagination-v2 is package ko install karen gay for aggregation  npm i mongoose-aggregate-paginate-v2
