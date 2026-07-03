@@ -61,3 +61,11 @@ abhi tak ka jo kam hua wo node.js pe hua ab jo request or response handle karay 
 
 make data models of all entities
 mongoose-aggregation-pagination-v2 is package ko install karen gay for aggregation  npm i mongoose-aggregate-paginate-v2
+
+passwords ko encrypt kerne k liye bcrypt install karen gay   npm i bcrypt  or saath jsonwebtoken yani JWT ye secret token k liye takay koi password decrypt na ker sake npm i jsonwebtoken
+ab in dono ko user me import kerna hai inko direct use nahi ker saktay mongoose website pe pre name ka middleware hook jise use karen gay 
+
+jwt aik bearer token hai JWT ek secure token hai jo login ke baad user ki identity verify karne ke liye har request ke sath bheja jata hai, taake user ko baar baar login na karna pade.
+JWT ke 3 parts hote hain:
+
+Header . Payload . Signature

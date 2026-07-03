@@ -1,4 +1,6 @@
 import mongoose , {Schema} from "mongoose";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 
 const userSchema = new Schema(
     {
@@ -48,5 +50,18 @@ const userSchema = new Schema(
         timestamps: true
 }
 )
+
+//password ko hash karne ke liye pre save hook ka use kar rahe hai
+userSchema.pre("save",async function(next){              //ye function save hone se pehle chalega
+    if(!this.isModified("password"))  return next();          //agar password modify hua hai to hi hash karna hai
+    this.password = await bcrypt.hash(this.password, 10);      //is line me password ko hash kar rahe hai
+    next();
+}) 
+
+
+    //ye function save hone ke baad chalega
+userSchema.methods.isPasswordCorrect = async function(password){
+    return await bcrypt.compare(password, this.password);          //ye function password ko compare karega
+}
 
 export const User = mongoose.model("User", userSchema);
