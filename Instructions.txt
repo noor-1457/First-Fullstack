@@ -69,3 +69,6 @@ jwt aik bearer token hai JWT ek secure token hai jo login ke baad user ki identi
 JWT ke 3 parts hote hain:
 
 Header . Payload . Signature
+
+npm i cloudinary(for images) and multer(for file handling)
+utility me cloudinary file banaye gay uder website se code leke paste karen gay jo b image ya file save kerni hai usay temporary local storage me save karengay the m multer se cloudinary pe server pe save karen gay 
