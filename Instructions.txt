@@ -57,8 +57,6 @@ ApiResponse.js response set kiya
 abhi tak ka jo kam hua wo node.js pe hua ab jo request or response handle karay ga wo express pe hoga.
 
 
-(Data Modeling)
-
 make data models of all entities
 mongoose-aggregation-pagination-v2 is package ko install karen gay for aggregation  npm i mongoose-aggregate-paginate-v2
 
@@ -72,3 +70,5 @@ Header . Payload . Signature
 
 npm i cloudinary(for images) and multer(for file handling)
 utility me cloudinary file banaye gay uder website se code leke paste karen gay jo b image ya file save kerni hai usay temporary local storage me save karengay the m multer se cloudinary pe server pe save karen gay 
+
+ab multer k liye aik middleware likhe gay 
