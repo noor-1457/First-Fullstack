@@ -16,4 +16,16 @@ app.use(express.urlencoded({ limit: "50mb", extended: true })); //extended ka ma
 app.use(express.static("public"));     //yeh static folder ka kaam karta hai jahan hum images ya files store karte hain
 app.use(cookieParser()); //yeh cookies ko parse karke req.cookies me dalta hai   || ham user k browser me cookies k sath crud operations ker sakte hain 
 
+
+
+
+
+//routes import 
+import userRouter from "./routes/user.routes.js";
+
+
+
+
+//routes declaration
+app.use("/api/v1/users", userRouter);
 export { app };
