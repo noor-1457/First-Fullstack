@@ -21,11 +21,10 @@ app.use(cookieParser()); //yeh cookies ko parse karke req.cookies me dalta hai  
 
 
 //routes import 
-import userRouter from "./routes/user.routes.js";
-
+import userRouter from "./routes/user.routes.js";     //import hua
 
 
 
 //routes declaration
-app.use("/api/v1/users", userRouter);
+app.use("/api/v1/users", userRouter);       //userRouter ko use kerte hain /api/v1/users k sath  || iska matlab hai jab bhi /api/v1/users aayega to userRouter kaam karega
 export { app };

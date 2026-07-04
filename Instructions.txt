@@ -72,3 +72,8 @@ npm i cloudinary(for images) and multer(for file handling)
 utility me cloudinary file banaye gay uder website se code leke paste karen gay jo b image ya file save kerni hai usay temporary local storage me save karengay the m multer se cloudinary pe server pe save karen gay 
 
 ab multer k liye aik middleware likhe gay 
+
+
+(Routes)(controllers)
+user ka controller likha or saath hi uska route k user k bad konsa route ayega jo chalay
+phir usay app.js me import ker k declare kiya
