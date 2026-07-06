@@ -77,3 +77,5 @@ ab multer k liye aik middleware likhe gay
 (Routes)(controllers)
 user ka controller likha or saath hi uska route k user k bad konsa route ayega jo chalay
 phir usay app.js me import ker k declare kiya
+
+ab user controller me user ko register kerne k liye sab se pehle sab steps ko comments me likha phir unko aik aik ker k solve kiya
