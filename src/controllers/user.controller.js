@@ -1,7 +1,8 @@
 import asyncHandler from '../utils/asyncHandler.js';
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js"
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
 //user route se ye wala controller function call hoga registerUser k liye
 
 const registerUser = asyncHandler(async (req, res) => {     //user registration k liye controller function banaya hai asyncHandler k sath takay error handle ho jaye
@@ -47,6 +48,34 @@ const registerUser = asyncHandler(async (req, res) => {     //user registration 
     //5
     const avatar = await uploadOnCloudinary(avatarLocalPath)
     const coverImage = await uploadOnCloudinary(coverImageLocalPath)
+    if(!avatar) {
+        throw new ApiError(400, "Avatar file is required")
+    }
+
+    //6
+    const user = await User.create({
+        fullname,
+        avatar: avatar.url,
+        coverImage: coverImage?.url || "",
+        email,
+        password,
+        username: username.toLowerCase(),
+    })
+
+    //7
+    const createdUser = await User.findById(user._id).select(
+        "-password -refreshToken"
+    )
+
+    //8
+    if(!createdUser){
+        throw new ApiError(500, "Something went wrong while registering the user")
+    }
+
+    //9
+    return res.status(201).json(
+        new ApiResponse(200, createdUser, "User registered successfully")
+    )
     })
 
 export { registerUser };
