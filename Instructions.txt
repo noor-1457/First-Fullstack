@@ -79,3 +79,6 @@ user ka controller likha or saath hi uska route k user k bad konsa route ayega j
 phir usay app.js me import ker k declare kiya
 
 ab user controller me user ko register kerne k liye sab se pehle sab steps ko comments me likha phir unko aik aik ker k solve kiya
+
+Postman
+postman me url laga k form k liye post select ker k body me ja k form data select karengay q k json me files nahi asakti.

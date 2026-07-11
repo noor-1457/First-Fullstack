@@ -1,7 +1,7 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js"; // jahan b error asakta hai uder ye use hoga
 import { User } from "../models/user.model.js"; // User db se baat karega or data save karega
-import { uploadOnCloudinary } from "../utils/cloudinary.js"; //images ko local db se cloudinary pe post karega
+import  uploadOnCloudinary  from "../utils/cloudinary.js"; //images ko local db se cloudinary pe post karega
 import { ApiResponse } from "../utils/ApiResponse.js"; //Api response bataye ga register hua k nahi
 
 //user route se ye wala controller function call hoga registerUser k liye
@@ -24,17 +24,14 @@ const registerUser = asyncHandler(async (req, res) => {
 
   //2
   if (
-    [fullname, email, username, password].some(
-      (
-        field //agara ak b feild miss ho to error
-      ) => feild?.trim() === ""
-    )
+    [fullname, email, username, password].some
+    ((field) => field?.trim() === "")
   ) {
     throw new ApiError(400, "All feilds are required");
   }
 
   //3
-  const existedUser = User.findOne({
+  const existedUser = await User.findOne({
     //ider user find hoga email ya username ka agar wo pehle se hai to error ayga
     $or: [{ username }, { email }],
   });
@@ -52,6 +49,8 @@ const registerUser = asyncHandler(async (req, res) => {
 
   //5
   const avatar = await uploadOnCloudinary(avatarLocalPath); //yahan pe local wali file cloudinary pe upload hogi
+  console.log("Avatar Path:", avatarLocalPath);
+  console.log("Cloudinary Response:", avatar);
   const coverImage = await uploadOnCloudinary(coverImageLocalPath);
   if (!avatar) {
     throw new ApiError(400, "Avatar file is required"); //agar avatar ni hai to error
