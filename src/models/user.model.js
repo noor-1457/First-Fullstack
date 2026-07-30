@@ -30,7 +30,7 @@ const userSchema = new Schema(
         required: true,
     },
     coverImage:{
-        type:String,
+        type:String, 
     },
     watchHistory: [
         {
@@ -55,7 +55,7 @@ const userSchema = new Schema(
 userSchema.pre("save",async function(next){              //ye function save hone se pehle chalega
     if(!this.isModified("password"))  return next();          //agar password modify hua hai to hi hash karna hai
     this.password = await bcrypt.hash(this.password, 10);      //is line me password ko hash kar rahe hai
-    next();
+    // next();
 }) 
 
 
