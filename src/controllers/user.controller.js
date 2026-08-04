@@ -6,6 +6,20 @@ import { ApiResponse } from "../utils/ApiResponse.js"; //Api response bataye ga 
 
 //user route se ye wala controller function call hoga registerUser k liye
 
+const generateAccessAndRefreshTokens = async (userId) =>{
+   try{
+      const user = await User.findById(userId)
+      const accessToken = user.generateAccessToken()
+      const refreshToken = user.generateRefreshToken()
+
+      user.refreshToken = refreshToken
+      user.save({validateBeforeSave: false}) //refresh token ko db me save kar rahe hai
+      return { accessToken, refreshToken }
+   }catch (error){
+        throw new ApiError(500, "Error generating tokens: " + error.message);
+   }
+}
+
 const registerUser = asyncHandler(async (req, res) => {
   //user registration k liye controller function banaya hai asyncHandler k sath takay error handle ho jaye
   //1 get user details from frontend
@@ -90,4 +104,34 @@ const registerUser = asyncHandler(async (req, res) => {
   );
 });
 
-export { registerUser };
+// 10 login user
+const loginUser = asyncHandler(async (req, res) => {
+//user body -> data
+//username or email or password
+//find user
+//paswword check
+//access and refresh token generate
+//send cookie
+
+const {email, username, password} = req.body
+if(!username || !email){
+    throw new ApiError(400, "Username or email is required")
+}
+
+const user = await User.findOne({$or: [{username}, {email}]
+})      //ider ham db operator or se user(email ya username) ko find kar rahe hai
+
+if(!user){
+  throw new ApiError(404, "User not found")
+}
+
+const isPasswordValid = await user.isPasswordCorrect(password) //ider user ka password check kar rahe hai
+})
+
+if(!isPasswordValid){
+  throw new ApiError(401, "Invalid user credentials")
+}
+
+export { registerUser , loginUser };
+
+//User mongoose model me methods banay hain or user controller me un methods ko call kar rahe hain.
