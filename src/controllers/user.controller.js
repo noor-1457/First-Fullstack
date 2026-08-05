@@ -13,7 +13,8 @@ const generateAccessAndRefreshTokens = async (userId) =>{
       const refreshToken = user.generateRefreshToken()
 
       user.refreshToken = refreshToken
-      user.save({validateBeforeSave: false}) //refresh token ko db me save kar rahe hai
+      await user.save({validateBeforeSave: false}) //refresh token ko db me save kar rahe hai
+
       return { accessToken, refreshToken }
    }catch (error){
         throw new ApiError(500, "Error generating tokens: " + error.message);
@@ -126,12 +127,40 @@ if(!user){
 }
 
 const isPasswordValid = await user.isPasswordCorrect(password) //ider user ka password check kar rahe hai
-})
-
 if(!isPasswordValid){
   throw new ApiError(401, "Invalid user credentials")
 }
 
-export { registerUser , loginUser };
+const {accessToken, refreshToken} = await generateAccessAndRefreshTokens(user._id)
+
+const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+
+const options ={
+  httpOnly: true,        //sirf server modify ker sakta hi
+  secure: true,         //koi b modify nahi ker sakta
+}
+
+return res
+.status(200)
+.cookie("AccessToken" , accessToken, options)
+.cookie("RefreshToken", refreshToken, options)
+.json(
+  new ApiResponse(200, 
+    {
+    user: loggedInUser, accessToken, refreshToken
+    }, 
+  "User logged in successfully"
+  )
+)
+})
+
+const logoutUser = asyncHandler(async (req, res) => {
+
+})
+
+
+export {   
+  registerUser , loginUser , logoutUser
+};
 
 //User mongoose model me methods banay hain or user controller me un methods ko call kar rahe hain.
