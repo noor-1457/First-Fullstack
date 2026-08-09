@@ -1,3 +1,4 @@
+// models/user.model.js - COMPLETE FIXED VERSION
 import mongoose, { Schema } from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
@@ -10,7 +11,7 @@ const userSchema = new Schema(
       unique: true,
       lowercase: true,
       trim: true,
-      index: true, //agar searching kerni hai kisi user ko to index lagana padega
+      index: true,
     },
     email: {
       type: String,
@@ -51,42 +52,92 @@ const userSchema = new Schema(
   }
 );
 
-//password ko hash karne ke liye pre save hook ka use kar rahe hai
+// FIX: Pre-save hook - Async function use karo, 'next' ko optional rakho
 userSchema.pre("save", async function (next) {
-  //ye function save hone se pehle chalega
-  if (!this.isModified("password")) return next(); //agar password modify hua hai to hi hash karna hai
-  this.password = await bcrypt.hash(this.password, 10); //is line me password ko hash kar rahe hai
-  // next();
+  console.log("🔄 pre-save hook called");
+  
+  // Agar password modify nahi hua toh skip karo
+  if (!this.isModified("password")) {
+    console.log("⏭️ Password not modified, skipping hash");
+    return next();
+  }
+  
+  console.log("🔐 Hashing password...");
+  try {
+    this.password = await bcrypt.hash(this.password, 10);
+    console.log("✅ Password hashed successfully");
+    next();
+  } catch (error) {
+    console.log("❌ Error hashing password:", error.message);
+    next(error);
+  }
 });
 
-//ye function save hone ke baad chalega
+// OR better - Alternative approach without 'next' (MODERN WAY)
+// userSchema.pre("save", async function() {
+//   if (!this.isModified("password")) return;
+//   this.password = await bcrypt.hash(this.password, 10);
+// });
+
 userSchema.methods.isPasswordCorrect = async function (password) {
-  return await bcrypt.compare(password, this.password); //ye function password ko compare karega
+  console.log("🔍 Checking password...");
+  return await bcrypt.compare(password, this.password);
 };
 
 userSchema.methods.generateAccessToken = function () {
-  //ye function access token generate karega
-  return jwt.sign(
-    {
-      _id: this._id, //short lived token generate karne ke liye user ka id, email, username aur fullname ko sign kar rahe hai
-      email: this.email,
-      username: this.username,
-      fullname: this.fullname,
-    },
-    process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
-  );
+  console.log("🟢 generateAccessToken called for user:", this._id);
+  const payload = {
+    _id: this._id,
+    email: this.email,
+    username: this.username,
+    fullname: this.fullname,
+  };
+  console.log("🟢 Payload:", payload);
+  
+  const secret = process.env.ACCESS_TOKEN_SECRET;
+  console.log("🟢 Using secret:", secret ? "Exists" : "MISSING!");
+  
+  if (!secret) {
+    throw new Error("ACCESS_TOKEN_SECRET is not defined in .env file!");
+  }
+
+  try {
+    const token = jwt.sign(payload, secret, { 
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "1d" 
+    });
+    console.log("🟢 Token generated successfully");
+    return token;
+  } catch (error) {
+    console.log("🔴 Error in generateAccessToken:", error.message);
+    throw error;
+  }
 };
 
 userSchema.methods.generateRefreshToken = function () {
-  return jwt.sign(
-    {
-      //ye function refresh token generate karega long term cookie ke liye
-      _id: this._id,
-    },
-    process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
-  );
+  console.log("🟢 generateRefreshToken called for user:", this._id);
+  const payload = {
+    _id: this._id,
+  };
+  console.log("🟢 Payload:", payload);
+  
+  const secret = process.env.REFRESH_TOKEN_SECRET;
+  console.log("🟢 Using secret:", secret ? "Exists" : "MISSING!");
+  
+  if (!secret) {
+    throw new Error("REFRESH_TOKEN_SECRET is not defined in .env file!");
+  }
+
+  try {
+    const token = jwt.sign(payload, secret, { 
+      expiresIn: process.env.REFRESH_TOKEN_EXPIRY || "10d" 
+    });
+    console.log("🟢 Token generated successfully");
+    return token;
+  } catch (error) {
+    console.log("🔴 Error in generateRefreshToken:", error.message);
+    throw error;
+  }
 };
 
-export const User = mongoose.model("User", userSchema);
+const User = mongoose.model("User", userSchema);
+export { User };

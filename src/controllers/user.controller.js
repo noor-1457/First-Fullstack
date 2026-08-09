@@ -1,25 +1,41 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js"; // jahan b error asakta hai uder ye use hoga
 import { User } from "../models/user.model.js"; // User db se baat karega or data save karega
-import  uploadOnCloudinary  from "../utils/cloudinary.js"; //images ko local db se cloudinary pe post karega
+import uploadOnCloudinary from "../utils/cloudinary.js"; //images ko local db se cloudinary pe post karega
 import { ApiResponse } from "../utils/ApiResponse.js"; //Api response bataye ga register hua k nahi
 
 //user route se ye wala controller function call hoga registerUser k liye
 
-const generateAccessAndRefreshTokens = async (userId) =>{
-   try{
-      const user = await User.findById(userId)
-      const accessToken = user.generateAccessToken()
-      const refreshToken = user.generateRefreshToken()
+// Complete working controller
+const generateAccessAndRefreshTokens = async (userId) => {
+  try {
+    console.log("🔄 Generating tokens for user:", userId);
 
-      user.refreshToken = refreshToken
-      await user.save({validateBeforeSave: false}) //refresh token ko db me save kar rahe hai
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
 
-      return { accessToken, refreshToken }
-   }catch (error){
-        throw new ApiError(500, "Error generating tokens: " + error.message);
-   }
-}
+    console.log("📝 Generating access token...");
+    const accessToken = user.generateAccessToken();
+
+    console.log("📝 Generating refresh token...");
+    const refreshToken = user.generateRefreshToken();
+
+    // ✅ BEST FIX: updateOne use karo - pre-save hook trigger nahi hoga
+    console.log("💾 Saving refresh token to database...");
+    await User.updateOne(
+      { _id: userId },
+      { $set: { refreshToken: refreshToken } }
+    );
+    console.log("✅ Refresh token saved successfully");
+
+    return { accessToken, refreshToken };
+  } catch (error) {
+    console.log("❌ Error:", error.message);
+    throw new ApiError(500, "Error generating tokens: " + error.message);
+  }
+};
 
 const registerUser = asyncHandler(async (req, res) => {
   //user registration k liye controller function banaya hai asyncHandler k sath takay error handle ho jaye
@@ -39,8 +55,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
   //2
   if (
-    [fullname, email, username, password].some
-    ((field) => field?.trim() === "")
+    [fullname, email, username, password].some((field) => field?.trim() === "")
   ) {
     throw new ApiError(400, "All feilds are required");
   }
@@ -59,9 +74,13 @@ const registerUser = asyncHandler(async (req, res) => {
   // const coverImageLocalPath = req.files?.coverImage[0]?.path;
 
   let coverImageLocalPath;
-  if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length >0 ){
-    coverImageLocalPath = req.files.coverImage[0].path
-  };
+  if (
+    req.files &&
+    Array.isArray(req.files.coverImage) &&
+    req.files.coverImage.length > 0
+  ) {
+    coverImageLocalPath = req.files.coverImage[0].path;
+  }
   if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar file is required"); //agar avatar ni hai to error
   }
@@ -70,7 +89,12 @@ const registerUser = asyncHandler(async (req, res) => {
   const avatar = await uploadOnCloudinary(avatarLocalPath); //yahan pe local wali file cloudinary pe upload hogi
   console.log("Avatar Path:", avatarLocalPath);
   console.log("Cloudinary Response:", avatar);
-  const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+
+  // FIX: Improved coverImage upload logic - agar coverImage hai to upload karo nahi to null rakho
+  const coverImage = coverImageLocalPath
+    ? await uploadOnCloudinary(coverImageLocalPath)
+    : null;
+
   if (!avatar) {
     throw new ApiError(400, "Avatar file is required"); //agar avatar ni hai to error
   }
@@ -107,79 +131,90 @@ const registerUser = asyncHandler(async (req, res) => {
 
 // 10 login user
 const loginUser = asyncHandler(async (req, res) => {
-//user body -> data
-//username or email or password
-//find user
-//paswword check
-//access and refresh token generate
-//send cookie
+  //user body -> data
+  //username or email or password
+  //find user
+  //paswword check
+  //access and refresh token generate
+  //send cookie
 
-const {email, username, password} = req.body
-if(!username || !email){
-    throw new ApiError(400, "Username or email is required")
-}
+  const { email, username, password } = req.body;
+  if (!username && !email) {
+    throw new ApiError(400, "Username or email is required");
+  }
 
-const user = await User.findOne({$or: [{username}, {email}]
-})      //ider ham db operator or se user(email ya username) ko find kar rahe hai
+  const user = await User.findOne({ $or: [{ username }, { email }] }); //ider ham db operator or se user(email ya username) ko find kar rahe hai
 
-if(!user){
-  throw new ApiError(404, "User not found")
-}
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
 
-const isPasswordValid = await user.isPasswordCorrect(password) //ider user ka password check kar rahe hai
-if(!isPasswordValid){
-  throw new ApiError(401, "Invalid user credentials")
-}
+  const isPasswordValid = await user.isPasswordCorrect(password); //ider user ka password check kar rahe hai
+  if (!isPasswordValid) {
+    throw new ApiError(401, "Invalid user credentials");
+  }
 
-const {accessToken, refreshToken} = await generateAccessAndRefreshTokens(user._id)
+  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
+    user._id
+  );
 
-const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+  const loggedInUser = await User.findById(user._id).select(
+    "-password -refreshToken"
+  );
 
-const options ={
-  httpOnly: true,        //sirf server modify ker sakta hi
-  secure: true,         //koi b modify nahi ker sakta
-}
+  const options = {
+    httpOnly: true, //sirf server modify ker sakta hi
+    secure: true, //koi b modify nahi ker sakta
+    // FIX: Added sameSite option for better security - cross-origin requests ke liye
+    sameSite: "none",
+  };
 
-return res
-.status(200)
-.cookie("AccessToken" , accessToken, options)
-.cookie("RefreshToken", refreshToken, options)
-.json(
-  new ApiResponse(200, 
-    {
-    user: loggedInUser, accessToken, refreshToken
-    }, 
-  "User logged in successfully"
-  )
-)
-})
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+      new ApiResponse(
+        200,
+        {
+          user: loggedInUser,
+          accessToken,
+          refreshToken,
+        },
+        "User logged in successfully"
+      )
+    );
+});
 
 const logoutUser = asyncHandler(async (req, res) => {
-User.findByIdAndUpdate(
-  req.user._id, 
-  {
-    $set: {
-      refreshToken: null
-
+  await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set: {
+        refreshToken: null,
+      },
+    },
+    {
+      new: true,
     }
-  }, 
-  {
-    new: true
-  }) //ider user ka refresh token null kar rahe hai
-  const options ={
-  httpOnly: true,        //sirf server modify ker sakta hi
-  secure: true,         //koi b modify nahi ker sakta
-}
-return res
-.status(200)
-.clearcookie("accessToken", options)
-.clearcookie("refreshToken", options)
-.json(new ApiResponse(200, {}, "User logged out successfully"))
-})
+  ); //ider user ka refresh token null kar rahe hai
 
+  const options = {
+    httpOnly: true, //sirf server modify ker sakta hi
+    secure: true, //koi b modify nahi ker sakta
+    // FIX: Added sameSite option for consistency
+    sameSite: "none",
+  };
 
-export {   
-  registerUser , loginUser , logoutUser
-};
+  // FIX: Changed 'clearcookie' to 'clearCookie' - ye method sahi spelling hai
+  // Pehle 'clearcookie' tha jo galat tha, ab sahi kiya gaya
+  return res
+    .status(200)
+    .clearCookie("accessToken", options) // FIX: clearCookie (small 'c', capital 'C')
+    .clearCookie("refreshToken", options) // FIX: clearCookie (small 'c', capital 'C')
+    .json(new ApiResponse(200, {}, "User logged out successfully"));
+});
 
-//User mongoose model me methods banay hain or user controller me un methods ko call kar rahe hain.
+export { registerUser, loginUser, logoutUser };
+
+//User mongoose model me methods banay hain or user controller me un methods ko call kar rahe hain. yaar ye check karo

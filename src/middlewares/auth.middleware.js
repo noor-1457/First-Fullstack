@@ -1,6 +1,6 @@
 //this will verify is the user is logged in or not
 import { ApiError } from "../utils/apiError.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
+import  asyncHandler  from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken";
 import {User} from "../models/user.model.js"
 
@@ -19,7 +19,7 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
             throw new ApiError(401, "Unauthorized request")         //agar user nahi mila to unauthorized request
         }
         req.user = user;
-        next()
+        next();
     }catch (error) {
         throw new ApiError(401, "Unauthorized request")         //agar token verify nahi hua to unauthorized request
     }
