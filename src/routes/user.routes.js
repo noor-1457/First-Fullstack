@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { registerUser, loginUser, logoutUser } from '../controllers/user.controller.js';
-import  upload  from "../middlewares/multer.middleware.js"; //ye registerUser se pehle run hoga q k ye middleware hai ipehle ye upload check hoga phir register chalay ga 
+import { upload, verifyJWT  } from "../middlewares/multer.middleware.js"; //ye registerUser se pehle run hoga q k ye middleware hai ipehle ye upload check hoga phir register chalay ga 
 
 const router = Router();
 
@@ -21,5 +21,5 @@ router.route("/register").post(
 router.route("/login").post(loginUser)
 
 //secured routes 
-router.route("/logout").post(logoutUser)
+router.route("/logout").post(verifyJWT, logoutUser)
 export default router;

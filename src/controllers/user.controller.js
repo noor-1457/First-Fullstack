@@ -155,7 +155,26 @@ return res
 })
 
 const logoutUser = asyncHandler(async (req, res) => {
+User.findByIdAndUpdate(
+  req.user._id, 
+  {
+    $set: {
+      refreshToken: null
 
+    }
+  }, 
+  {
+    new: true
+  }) //ider user ka refresh token null kar rahe hai
+  const options ={
+  httpOnly: true,        //sirf server modify ker sakta hi
+  secure: true,         //koi b modify nahi ker sakta
+}
+return res
+.status(200)
+.clearcookie("accessToken", options)
+.clearcookie("refreshToken", options)
+.json(new ApiResponse(200, {}, "User logged out successfully"))
 })
 
 
