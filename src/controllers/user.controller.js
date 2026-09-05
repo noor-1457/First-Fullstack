@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js"; // jahan b error asakta hai ude
 import { User } from "../models/user.model.js"; // User db se baat karega or data save karega
 import uploadOnCloudinary from "../utils/cloudinary.js"; //images ko local db se cloudinary pe post karega
 import { ApiResponse } from "../utils/ApiResponse.js"; //Api response bataye ga register hua k nahi
+import jwt from "jsonwebtoken";
 
 //user route se ye wala controller function call hoga registerUser k liye
 
@@ -215,6 +216,52 @@ const logoutUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "User logged out successfully"));
 });
 
-export { registerUser, loginUser, logoutUser };
+const refreshAccessToken = asyncHandler(async(req, res)=>{
+  const incomingRefreshToken =
+   req.cookies.refreshToken || req.body.refreshToken
+
+   if(!incomingRefreshToken){
+    throw new ApiError(401, "unauthorized access")
+   }
+
+ try {
+  const decodedToken = jwt.verify(
+   incomingRefreshToken,
+   process.env.REFRESH_TOKEN_SECRET
+  )
+ 
+  cost user =await User.findById(decodedToken?._id)
+  
+  if(!user){
+      throw new ApiError(401, "Invalid Refresh token")
+     }
+ 
+     if (incomingRefreshToken !== user?.refreshToken) {
+        throw new ApiError(401, "Expired refresh token")
+     }
+ 
+     const options={
+        httpOnly: true,
+        secure: true
+     }
+    const {accessToken, newRefreshToken}= await generateAccessAndRefreshTokens(user._id)
+ 
+    return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", newRefreshToken, options)
+    .json(
+     new ApiResponse(
+       200,
+       {accessToken, refreshToken: newRefreshtoken},
+       "access token refreshed"
+     )
+    )
+ } catch (error) {
+  throw new Apierror(401, error?.message || "Invalid refresh token")
+ }
+})
+
+export { registerUser, loginUser, logoutUser , refreshAccessToken};
 
 //User mongoose model me methods banay hain or user controller me un methods ko call kar rahe hain. yaar ye check karo
