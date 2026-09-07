@@ -230,7 +230,7 @@ const refreshAccessToken = asyncHandler(async(req, res)=>{
    process.env.REFRESH_TOKEN_SECRET
   )
  
-  cost user =await User.findById(decodedToken?._id)
+  const user =await User.findById(decodedToken?._id)
   
   if(!user){
       throw new ApiError(401, "Invalid Refresh token")
@@ -262,6 +262,72 @@ const refreshAccessToken = asyncHandler(async(req, res)=>{
  }
 })
 
-export { registerUser, loginUser, logoutUser , refreshAccessToken};
+const changeCurrentPassword = asyncHandler(async(req, res)=>{
+   const {oldPassword, newPassword} = req.body
+
+  const user= await User.findById(req.user?._id)
+  const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
+
+    if(!isPasswordCorrect){
+      throw new ApiError(401, "Old password is incorrect");
+    }
+
+    user.password = newPassword
+    await user.save({validateBeforeSave: false})
+
+     return res
+    .status(200)
+    .json(
+     new ApiResponse(
+       200,
+       {},
+       "Password updated successfully"
+     )
+    )
+})
+
+const getCurrentUser = asyncHandler(async(req, res)=>{
+  return res
+    .status(200)
+    .json(
+     new ApiResponse(
+       200,
+       req.user,
+       "Current user fetched successfully"
+     )
+    ) 
+})
+
+const updateAccountDetails = asyncHandler(async(req, res)=>{
+  const {fullName, email} = req.body
+
+  if (!fullName || email) {
+    throw new ApiError(400, "Full name and email are required");
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.user?._id,
+  {
+    $set:{
+      fullName,
+      email: email
+    }
+  },
+  {
+    new: true
+  }
+  ).select("-password ")
+
+  return res
+    .status(200)
+    .json(
+     new ApiResponse(
+       200,
+       user,
+       "Account details updated successfully"
+     )
+    )
+})
+export { registerUser, loginUser, logoutUser , refreshAccessToken , changeCurrentPassword, getCurrentUser, updateAccountDetails};
 
 //User mongoose model me methods banay hain or user controller me un methods ko call kar rahe hain. yaar ye check karo
